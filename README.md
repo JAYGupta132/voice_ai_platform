@@ -1,98 +1,130 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Conversation Session Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend service for managing conversation sessions and events for a Voice AI platform.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project was created as part of a backend take-home assignment and emphasizes correctness, idempotency, concurrency-safety, and a clean separation of concerns.
 
-## Description
+**Table of contents**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Overview
+- Tech stack
+- Features
+- Architecture & important design decisions
+- Getting started
+- Environment variables
+- Run
+- API overview & examples
+- Data models / DTOs
 
-## Project setup
+## Overview
 
-```bash
-$ npm install
-```
+This service provides APIs to create conversation sessions and ingest immutable events tied to those sessions. It's designed to be:
 
-## Compile and run the project
+- Idempotent: repeated requests do not create duplicates.
+- Concurrency-safe: MongoDB operations handle concurrent access safely.
+- Scalable: cursor-based pagination to efficiently stream large event sets.
 
-```bash
-# development
-$ npm run start
+## Tech stack
 
-# watch mode
-$ npm run start:dev
+- Node.js (>= 18)
+- TypeScript
+- NestJS
+- MongoDB with Mongoose
 
-# production mode
-$ npm run start:prod
-```
+## Features
 
-## Run tests
+- Create sessions (idempotent)
+- Ingest events (immutable + idempotent)
+- Pagination to fetch events
+- Repository/service/controller separation for clean architecture
 
-```bash
-# unit tests
-$ npm run test
+## Architecture & important design decisions
 
-# e2e tests
-$ npm run test:e2e
+- Controllers: Expose HTTP endpoints and validate input DTOs.
+- Services: Coordinate business logic, ensure idempotency and validation.
+- Repositories: Encapsulate MongoDB / Mongoose operations and concurrency-safe updates.
+- Schemas: Mongoose schemas under `src/sessions/schemas` define the persisted models.
 
-# test coverage
-$ npm run test:cov
-```
+Important implementation notes:
 
-## Deployment
+- Events are immutable once persisted.
+- Idempotency keys (or natural unique constraints) are used to prevent duplicate entities/events.
+- Pagination uses stable ordering (timestamps + unique ID) to page through events safely.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Getting started
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Prerequisites:
+
+- Node.js v18 or newer
+- A running MongoDB instance (local or remote)
+- `npm` or `yarn`
+
+Install dependencies:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
+# or
+yarn install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Environment variables
 
-## Resources
+Create a `.env` file in the project root. Common variables:
 
-Check out a few resources that may come in handy when working with NestJS:
+- `DB_URI` - MongoDB connection string (e.g. `mongodb://localhost:27017/conversation`) 
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Run
 
-## Support
+Start in development (NestJS watch):
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run start:dev
+```
 
-## Stay in touch
+## API overview & examples
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+This project exposes endpoints related to sessions and session events. See `src/sessions/sessions.controller.ts` for exact routes and payloads.
 
-## License
+Typical endpoints:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `POST /sessions` - Create or upsert a session (idempotent)
+- `GET /sessions/:id` - Fetch session metadata
+- `POST /sessions/:id/events` - Ingest an event for a session (immutable)
+- `GET /sessions/:id/events` - List events for a session (cursor-based pagination)
+
+Example: create a session
+
+```bash
+POST http://localhost:3000/sessions,
+'{ "sessionId": "abc123", "metadata": {"caller": "user@example.com"} }'
+```
+
+Example: ingest an event
+
+```bash
+POST http://localhost:3000/sessions/abc123/events,
+'{ "eventId": "evt-001", "type": "TRANSCRIPT", "payload": {"text": "hello"} }'
+```
+
+Pagination example:
+
+```bash
+"http://localhost:3000/sessions/abc123/events?limit=50&page=2"
+```
+
+The service uses cursor tokens encoding the position (timestamp + id) to page reliably.
+
+## Data models / DTOs
+
+Source files for schemas and DTOs:
+
+- `src/sessions/schemas/session.schema.ts`
+- `src/sessions/schemas/event.schema.ts`
+- `src/sessions/dto/*.ts` (create-session, add-event, etc.)
+
+Refer to those files for the canonical request/response shapes. DTOs include TypeScript types and validation decorators for request validation.
+
+## Where to look in the code
+
+- `src/sessions` - Session-related controllers, services, repositories, DTOs, and schemas.
+- `src/app.module.ts` - Root module wiring.
